@@ -4,16 +4,23 @@
 #define DHTPIN 6
 #define DHTTYPE DHT11
 DHT dht(DHTPIN, DHTTYPE);
+
 int count = 0; // initialize variable count
 int state = 0;
+int buttonPress;
+long timeRef = 0;
+
 
 LiquidCrystal_I2C lcd(0x27, 20, 2); // set the LCD address to 0x27 for a 16 chars and 2 line display
 
 void setup() {
   // put your setup code here, to run once:
-  pinMode (12, OUTPUT);
+
   pinMode(7, OUTPUT);
   pinMode(5, OUTPUT);
+  pinMode(2, INPUT_PULLUP); // button pin
+  pinMode(12, OUTPUT);
+  digitalWrite(12, HIGH);
 
   digitalWrite(7, LOW);
   digitalWrite(5, HIGH);
@@ -24,16 +31,41 @@ void setup() {
   lcd.backlight();
 
 
-  Serial.print("The count is : ");
+
+
+
+  Serial.begin(9600);
+
+  Serial.print("The count is :");
   Serial.println(count);
   count = count + 1;
 
   Serial.println(state);
+  lcd.print("Hey synch ");
+  lcd.setCursor(0, 1);
+  lcd.print("Fluffynator!");
+  delay(2000);
 
-  digitalWrite(12, HIGH);
-  Serial.begin(9600);
-  Serial.println(F("DHTxx test!"));
-  Serial.print("Hello!");
+  timeRef = millis(); // getting current time
+  while (millis() < (timeRef + 20000)) {
+    buttonPress = digitalRead(2);
+    Serial.println(buttonPress);
+
+
+    if (buttonPress == 0) {
+      digitalWrite(12, LOW);
+      delay(300);
+      digitalWrite(12, HIGH);
+      delay(300);
+      while (buttonPress == 0) {
+        buttonPress = digitalRead(2);
+
+
+      }
+
+    }
+  }
+
 
 }
 
@@ -69,7 +101,7 @@ void loop() {
   lcd.print(" ");
   lcd.print("state");
   delay(1500);
-  
+
 
   if ((h < 70) && (state == 0)) {
     turnOn(); // turns on the Humidifier
